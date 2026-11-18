@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPACE MISSION – Petualangan Luar Angkasa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --nav:58px;
+  --cyan:#2de2ff; --pink:#ff3d9a; --yellow:#ffd23f; --green:#37f08a; --red:#ff4d5e; --purple:#8a4dff;
+  --panel:rgba(14,10,46,.84);
+  --font:"Fredoka","Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  --disp:"Orbitron","Trebuchet MS",var(--font);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#05030f;color:#fff;font-family:var(--font);-webkit-user-select:none;user-select:none}
+input{-webkit-user-select:text;user-select:text}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hidden{display:none !important}
+
+/* ---------- NAVBAR ---------- */
+#navbar{position:fixed;top:0;left:0;right:0;height:var(--nav);z-index:60;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 14px;
+  background:linear-gradient(180deg,rgba(24,14,70,.96),rgba(12,8,40,.86));border-bottom:2px solid rgba(45,226,255,.38);box-shadow:0 4px 24px rgba(0,0,0,.55);backdrop-filter:blur(6px)}
+.brand{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand .ico{font-size:24px}
+.brand .txt{font-family:var(--disp);font-weight:900;letter-spacing:1px;font-size:17px;background:linear-gradient(90deg,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.pill{padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);font-weight:600;font-size:15px;white-space:nowrap;max-width:230px;overflow:hidden;text-overflow:ellipsis}
+.pill b{color:var(--yellow)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.stat{display:flex;align-items:center;gap:6px;font-weight:700;font-size:15px;white-space:nowrap}
+.stat b{color:var(--yellow);font-size:17px;min-width:36px;text-align:right}
+#navLives{letter-spacing:1px;font-size:15px}
+.nprog{display:flex;flex-direction:column;gap:3px;min-width:92px;font-size:11px;font-weight:600;color:#cfd8ff}
+.bar{height:8px;border-radius:99px;background:rgba(255,255,255,.15);overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--green));transition:width .4s}
+.cam-btn,.icon-btn{display:flex;align-items:center;gap:8px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-family:var(--font);font-weight:600;font-size:13px;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.cam-btn:hover,.icon-btn:hover{background:rgba(255,255,255,.2)}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red)}
+.cam-btn.loading .dot,.cam-btn.search .dot{background:var(--yellow);box-shadow:0 0 10px var(--yellow);animation:blink .8s infinite}
+.cam-btn.active{border-color:var(--green)}
+.cam-btn.active .dot{background:var(--green);box-shadow:0 0 12px var(--green)}
+@keyframes blink{50%{opacity:.25}}
+
+/* ---------- SCREENS ---------- */
+.screen{position:fixed;left:0;right:0;top:var(--nav);bottom:0;z-index:40;display:none;padding:16px;overflow:auto}
+.screen.active{display:flex}
+.screen > .card{margin:auto}
+.card{background:var(--panel);border:2px solid rgba(45,226,255,.4);border-radius:26px;padding:26px 28px;box-shadow:0 0 50px rgba(110,60,255,.45),inset 0 0 30px rgba(45,226,255,.08);backdrop-filter:blur(8px);max-width:900px;width:100%;text-align:center}
+.title{font-family:var(--disp);font-weight:900;font-size:clamp(32px,7vw,70px);line-height:1.05;letter-spacing:2px;background:linear-gradient(90deg,var(--cyan),#b58bff 50%,var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(120,80,255,.7))}
+.subtitle{font-family:var(--disp);font-weight:700;font-size:clamp(13px,2.4vw,22px);letter-spacing:4px;color:var(--yellow);margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:16px 0}
+.chip{padding:6px 14px;border-radius:999px;background:rgba(45,226,255,.14);border:1px solid rgba(45,226,255,.5);font-size:14px;font-weight:600}
+.name-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+#nameInput{flex:1 1 240px;max-width:380px;font-family:var(--font);font-size:20px;font-weight:600;padding:13px 18px;border-radius:16px;border:3px solid var(--cyan);background:rgba(5,3,30,.8);color:#fff;outline:none;text-align:center}
+#nameInput:focus{box-shadow:0 0 22px rgba(45,226,255,.7)}
+#nameInput.err{border-color:var(--red);animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.msg-err{color:#ff9aa5;font-weight:600;min-height:22px;margin-top:8px}
+.btn{font-family:var(--font);font-weight:700;font-size:19px;color:#fff;border:none;cursor:pointer;padding:13px 26px;border-radius:16px;background:linear-gradient(180deg,#ff5fb0,#e0207f);box-shadow:0 6px 0 #8f1252,0 10px 24px rgba(255,61,154,.45);transition:transform .08s,box-shadow .08s;letter-spacing:.5px}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #8f1252}
+.btn.cyan{background:linear-gradient(180deg,#42e8ff,#12a4cf);box-shadow:0 6px 0 #0a6783,0 10px 24px rgba(45,226,255,.4)}
+.btn.cyan:active{box-shadow:0 2px 0 #0a6783}
+.btn.green{background:linear-gradient(180deg,#4cf79a,#17b862);box-shadow:0 6px 0 #0d7a40,0 10px 24px rgba(55,240,138,.4)}
+.btn.green:active{box-shadow:0 2px 0 #0d7a40}
+.btn.sm{font-size:15px;padding:9px 18px;box-shadow:0 4px 0 #8f1252}
+.btn-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:20px;text-align:left}
+.how div{background:rgba(255,255,255,.07);border-radius:16px;padding:10px 14px;font-size:14px;line-height:1.35}
+.how b{display:block;font-size:16px;color:var(--cyan);margin-bottom:2px}
+.note{font-size:13px;color:#b9c3ff;margin-top:12px;line-height:1.4}
+
+/* ---------- MAP ---------- */
+.map-h{font-family:var(--disp);font-size:clamp(18px,3.2vw,30px);font-weight:900;color:var(--cyan)}
+.map-sub{margin-top:6px;color:#d7defc;font-size:16px}
+#mapGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:20px}
+.mcard{border-radius:22px;padding:14px 10px 16px;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.18);display:flex;flex-direction:column;align-items:center;gap:4px}
+.mcard.open{border-color:var(--cyan);box-shadow:0 0 22px rgba(45,226,255,.35)}
+.mcard.done{border-color:var(--green)}
+.mcard.locked{filter:grayscale(1);opacity:.55}
+.planet{width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 30% 28%,var(--c1),var(--c2) 62%,#0a0620 100%);box-shadow:0 0 26px var(--c2),inset -10px -10px 20px rgba(0,0,0,.45);position:relative;animation:float 3.6s ease-in-out infinite;display:flex;align-items:center;justify-content:center;font-size:30px}
+.mcard:nth-child(2) .planet{animation-delay:-.7s}.mcard:nth-child(3) .planet{animation-delay:-1.4s}.mcard:nth-child(4) .planet{animation-delay:-2.1s}.mcard:nth-child(5) .planet{animation-delay:-2.8s}
+@keyframes float{50%{transform:translateY(-9px)}}
+.mcard h3{font-family:var(--disp);font-size:16px;margin-top:6px}
+.mcard .mt{font-weight:700;font-size:14px;line-height:1.2;min-height:34px}
+.mcard .ms{font-size:12px;color:#c8d1ff;line-height:1.25}
+.mcard .lv{font-size:12px;font-weight:700;color:var(--yellow)}
+
+/* ---------- HUD ---------- */
+#qPanel{position:fixed;top:calc(var(--nav) + 10px);left:50%;transform:translateX(-50%);width:min(960px,94vw);z-index:30;padding:10px 18px 14px;border-radius:20px;background:rgba(12,8,44,.84);border:2px solid rgba(45,226,255,.45);box-shadow:0 0 30px rgba(90,60,255,.4);backdrop-filter:blur(6px);text-align:center}
+.q-top{display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.badge{padding:4px 12px;border-radius:999px;font-weight:700;font-size:13px;color:#fff}
+.b-LOTS{background:#1fb86a}.b-MOTS{background:#f59e0b;color:#2a1800}.b-HOTS{background:#ef476f}
+#qMeta{font-size:14px;font-weight:600;color:#cfd8ff}
+.q-top .bar{width:110px}
+#qText{font-size:clamp(16px,2.25vw,24px);line-height:1.35;font-weight:600}
+#hint{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);z-index:20;font-size:13px;color:#cdd6ff;opacity:.85;pointer-events:none;text-align:center;text-shadow:0 1px 4px #000;max-width:60vw}
+#btnPause{position:fixed;left:12px;bottom:12px;z-index:35}
+#camBox{position:fixed;right:12px;bottom:12px;z-index:35;width:200px;border-radius:16px;overflow:hidden;border:2px solid var(--green);box-shadow:0 0 20px rgba(55,240,138,.4);background:#000}
+#camBox video,#camBox canvas{display:block;width:100%;transform:scaleX(-1)}
+#camBox canvas{position:absolute;left:0;top:0;height:100%}
+#camStatus{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);font-size:12px;font-weight:600;padding:3px 6px;text-align:center}
+
+/* ---------- FEEDBACK / BANNER / TOAST ---------- */
+#screenFeedback{background:rgba(3,1,18,.45)}
+.fb-ok{border-color:var(--green) !important;box-shadow:0 0 50px rgba(55,240,138,.5) !important}
+.fb-bad{border-color:var(--red) !important;box-shadow:0 0 50px rgba(255,77,94,.5) !important}
+#fbIcon{font-size:64px;animation:pop .5s}
+#fbTitle{font-family:var(--disp);font-size:clamp(22px,4vw,34px);font-weight:900;margin:4px 0 6px}
+.fb-ok #fbTitle{color:var(--green)}.fb-bad #fbTitle{color:var(--red)}
+#fbAnswer{font-weight:700;font-size:18px;color:var(--yellow);margin-bottom:8px}
+#fbExp{font-size:17px;line-height:1.45;color:#e8ecff}
+#fbTimer{height:6px;border-radius:9px;background:rgba(255,255,255,.15);margin-top:14px;overflow:hidden}
+#fbTimer i{display:block;height:100%;background:var(--cyan);width:100%}
+#fbTimer i.run{animation:shrink linear forwards}
+@keyframes shrink{to{width:0}}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+#banner{position:fixed;inset:var(--nav) 0 0 0;z-index:45;display:none;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center;padding:20px}
+#banner.show{display:flex}
+#banner .b1{font-family:var(--disp);font-weight:900;font-size:clamp(40px,10vw,110px);background:linear-gradient(90deg,var(--yellow),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;animation:pop .6s;filter:drop-shadow(0 0 18px rgba(255,61,154,.7))}
+#banner .b2{font-size:clamp(20px,4vw,38px);font-weight:700;margin-top:6px;text-shadow:0 2px 12px #000}
+#banner .b3{font-size:clamp(15px,2.4vw,22px);margin-top:10px;color:var(--cyan);font-weight:600;text-shadow:0 2px 10px #000}
+#toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);z-index:80;background:rgba(20,10,60,.95);border:2px solid var(--yellow);padding:12px 20px;border-radius:16px;font-weight:600;max-width:min(560px,92vw);text-align:center;font-size:15px;line-height:1.4}
+
+/* ---------- RESULT SCREENS ---------- */
+.stars{font-size:48px;letter-spacing:6px;margin:6px 0}
+.big{font-family:var(--disp);font-weight:900;font-size:clamp(24px,5vw,44px)}
+.sum{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.sum div{background:rgba(255,255,255,.09);padding:10px 18px;border-radius:14px;font-weight:600;font-size:16px}
+.sum b{color:var(--yellow);font-size:22px;display:block}
+.praise{font-size:clamp(16px,2.3vw,20px);line-height:1.55;color:#e9edff;margin-top:10px}
+.trophy{font-size:80px;animation:float 2.6s ease-in-out infinite}
+
+@media (max-width:760px){
+  :root{--nav:52px}
+  .brand .txt,.nprog,#navLives{display:none}
+  #navbar{padding:0 8px;gap:6px}
+  .pill{font-size:13px;padding:5px 10px;max-width:120px}
+  .cam-btn span#camLabel{display:none}
+  .card{padding:18px 16px}
+  #camBox{width:128px}
+  #hint{display:none}
+  .stat{font-size:13px}
+}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- NAVBAR -->
+<header id="navbar">
+  <div class="brand"><span class="ico">🚀</span><span class="txt">SPACE MISSION</span></div>
+  <div id="playerPill" class="pill hidden">👨‍🚀 Astronot <b id="navName">-</b></div>
+  <div class="nav-right">
+    <div class="stat hidden" id="navScoreBox">⭐<b id="navScore">0</b></div>
+    <div class="stat hidden" id="navLives" title="Nyawa"></div>
+    <div class="nprog hidden" id="navProg"><span id="navProgTxt">Misi 0/5</span><div class="bar"><i id="navProgFill"></i></div></div>
+    <button id="btnCam" class="cam-btn off" title="Aktifkan kamera untuk kontrol tangan"><span class="dot"></span><span id="camLabel">Aktifkan Kamera</span></button>
+    <button id="btnSound" class="icon-btn" title="Suara">🔊</button>
+  </div>
+</header>
+
+<!-- START -->
+<section id="screenStart" class="screen active">
+  <div class="card">
+    <div class="title">SPACE MISSION</div>
+    <div class="subtitle">PETUALANGAN LUAR ANGKASA</div>
+    <div class="chips">
+      <span class="chip">📖 Pendidikan Agama Islam</span>
+      <span class="chip">🌙 Puasa Wajib dan Puasa Sunnah</span>
+      <span class="chip">🎒 Kelas 5</span>
+      <span class="chip">🛰️ 5 Misi • 15 Soal</span>
+    </div>
+    <p style="font-size:18px;margin-bottom:8px">Selamat datang, calon astronot! Siapa namamu?</p>
+    <div class="name-row">
+      <input id="nameInput" type="text" maxlength="18" placeholder="Tulis namamu di sini" autocomplete="off">
+      <button id="btnStart" class="btn">🚀 MULAI PETUALANGAN</button>
+    </div>
+    <div id="nameErr" class="msg-err"></div>
+    <div class="how">
+      <div><b>✋ Gerakan Tangan</b>Klik tombol “Aktifkan Kamera” di atas, lalu gerakkan telapak tangan di depan kamera.</div>
+      <div><b>🖱️ Mouse / Sentuh</b>Gerakkan mouse (atau geser jari) untuk menerbangkan pesawat.</div>
+      <div><b>⌨️ Keyboard</b>Tombol panah atau W A S D. Tekan P untuk jeda.</div>
+      <div><b>☄️ Cara Menjawab</b>Tabrak asteroid yang berisi jawaban benar. Benar +100 poin, salah nyawa berkurang.</div>
+    </div>
+    <p class="note">Kamera tidak menyala sebelum tombol “Aktifkan Kamera” ditekan. Pengenalan tangan memerlukan internet saat pertama kali dimuat.</p>
+  </div>
+</section>
+
+<!-- MAP -->
+<section id="screenMap" class="screen">
+  <div class="card">
+    <div class="map-h" id="mapTitle">Pilih Misi</div>
+    <div class="map-sub" id="mapSub">Selesaikan misi satu per satu untuk membuka misi berikutnya.</div>
+    <div id="mapGrid"></div>
+    <div class="btn-row"><button id="btnMapBack" class="btn cyan sm">⬅ Halaman Awal</button></div>
+  </div>
+</section>
+
+<!-- FEEDBACK -->
+<section id="screenFeedback" class="screen">
+  <div class="card" id="fbCard" style="max-width:640px">
+    <div id="fbIcon">✅</div>
+    <div id="fbTitle">Hebat!</div>
+    <div id="fbAnswer"></div>
+    <div id="fbExp"></div>
+    <div id="fbTimer"><i id="fbTimerBar"></i></div>
+    <div class="btn-row" style="margin-top:14px"><button id="btnNext" class="btn green">Lanjut ➜</button></div>
+    <p class="note">Tekan Enter atau Spasi untuk lanjut. Lanjut otomatis sebentar lagi.</p>
+  </div>
+</section>
+
+<!-- MISSION DONE -->
+<section id="screenDone" class="screen">
+  <div class="card" style="max-width:640px">
+    <div class="big" id="doneTitle" style="color:var(--green)">MISI SELESAI!</div>
+    <div class="stars" id="doneStars">⭐⭐⭐</div>
+    <div class="sum">
+      <div><b id="doneCorrect">0/3</b>Jawaban benar</div>
+      <div><b id="doneScore">0</b>Skor misi</div>
+      <div><b id="doneTotal">0</b>Skor total</div>
+    </div>
+    <p class="praise" id="doneMsg"></p>
+    <div class="btn-row">
+      <button id="btnDoneMap" class="btn cyan">🗺️ Peta Misi</button>
+      <button id="btnDoneNext" class="btn green">Misi Berikutnya ➜</button>
+    </div>
+  </div>
+</section>
+
+<!-- GAME OVER -->
+<section id="screenOver" class="screen">
+  <div class="card" style="max-width:600px">
+    <div class="trophy" style="animation:none">💥</div>
+    <div class="big" style="color:var(--red)">PESAWAT RUSAK!</div>
+    <p class="praise" id="overMsg"></p>
+    <div class="btn-row">
+      <button id="btnOverMap" class="btn cyan">🗺️ Peta Misi</button>
+      <button id="btnOverRetry" class="btn">🔁 Ulangi Misi</button>
+    </div>
+  </div>
+</section>
+
+<!-- PAUSE -->
+<section id="screenPause" class="screen">
+  <div class="card" style="max-width:520px">
+    <div class="big">⏸ JEDA</div>
+    <p class="praise">Istirahat sebentar, Astronot!</p>
+    <div class="btn-row">
+      <button id="btnResume" class="btn green">▶ Lanjutkan</button>
+      <button id="btnPauseMap" class="btn cyan">🗺️ Peta Misi</button>
+    </div>
+  </div>
+</section>
+
+<!-- WIN -->
+<section id="screenWin" class="screen">
+  <div class="card" style="max-width:760px">
+    <div class="trophy">🏆</div>
+    <div class="big" id="winTitle" style="color:var(--yellow)">SELAMAT!</div>
+    <div class="stars" id="winStars">⭐⭐⭐</div>
+    <div class="sum">
+      <div><b id="winScore">0</b>Skor total (maks. 1500)</div>
+      <div><b id="winCorrect">0/15</b>Jawaban benar</div>
+      <div><b id="winRank">-</b>Pangkat</div>
+    </div>
+    <p class="praise" id="winMsg"></p>
+    <div class="btn-row"><button id="btnPlayAgain" class="btn">🔄 MAIN KEMBALI</button></div>
+  </div>
+</section>
+
+<!-- GAME HUD -->
+<div id="qPanel" class="hidden">
+  <div class="q-top">
+    <span id="qBadge" class="badge b-LOTS">LOTS</span>
+    <span id="qMeta">Misi 1 • Soal 1/3</span>
+    <div class="bar"><i id="mFill"></i></div>
+  </div>
+  <div id="qText"></div>
+</div>
+<div id="hint" class="hidden">✋ Gerakkan telapak tangan &nbsp;•&nbsp; 🖱️ Mouse &nbsp;•&nbsp; ⌨️ Panah / WASD &nbsp;•&nbsp; P = Jeda</div>
+<button id="btnPause" class="btn cyan sm hidden">⏸ Jeda</button>
+<div id="camBox" class="hidden">
+  <video id="video" playsinline muted></video>
+  <canvas id="camCanvas"></canvas>
+  <div id="camStatus">Memuat…</div>
+</div>
+<div id="banner"><div class="b1" id="bn1"></div><div class="b2" id="bn2"></div><div class="b3" id="bn3"></div></div>
+<div id="toast" class="hidden"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* =====================================================================
+   DATA SOAL – PAI Kelas 5: Puasa Wajib dan Puasa Sunnah
+   Tiap misi 3 soal: LOTS (mengingat/memahami), MOTS (menerapkan), HOTS (menganalisis)
+   ===================================================================== */
+const MISSIONS = [
+  { title:'Stasiun Bulan Ramadan', topic:'Mengenal Puasa Wajib', level:'Mudah', n:3, speed:.115, drift:0,
+    planet:['#9ff4ff','#2a7bff'], icon:'🌙',
+    qs:[
+      { cat:'LOTS', text:'Puasa wajib bagi umat Islam dilaksanakan pada bulan ....',
+        ok:'Ramadan', bad:['Syawal','Muharram','Rajab'],
+        exp:'Puasa wajib dilakukan pada bulan Ramadan. Puasa Ramadan adalah rukun Islam yang ke-4.' },
+      { cat:'MOTS', text:'Adzan Magrib berkumandang saat Dani sedang berpuasa Ramadan. Apa yang sebaiknya Dani lakukan?',
+        ok:'Segera berbuka, lebih baik dengan kurma', bad:['Menunggu sampai waktu Isya','Menunggu sampai tengah malam','Melanjutkan puasa sampai pagi'],
+        exp:'Waktu puasa berakhir ketika matahari terbenam (Magrib). Menyegerakan berbuka itu dianjurkan, lebih baik dengan kurma atau air.' },
+      { cat:'HOTS', text:'Dina menahan lapar dan haus seharian, tetapi sering berbohong dan mengejek temannya. Bagaimana penilaian yang tepat tentang puasanya?',
+        ok:'Pahalanya berkurang karena tidak menjaga ucapan', bad:['Puasanya sempurna, pahala penuh','Berbohong adalah sunnah saat puasa','Akhlak tidak berkaitan dengan puasa'],
+        exp:'Puasa bukan hanya menahan lapar dan haus, tetapi juga menjaga lisan dan perbuatan. Berbohong dan mengejek mengurangi pahala puasa.' }
+    ]},
+  { title:'Nebula Syarat dan Rukun', topic:'Syarat, Rukun, Pembatal Puasa', level:'Mudah+', n:3, speed:.14, drift:.08,
+    planet:['#d9b3ff','#7a2bd8'], icon:'✨',
+    qs:[
+      { cat:'LOTS', text:'Niat puasa Ramadan dilakukan pada waktu ....',
+        ok:'Malam hari sebelum fajar', bad:['Setelah Zuhur','Saat berbuka puasa','Setelah Asar'],
+        exp:'Niat puasa Ramadan dilakukan pada malam hari, sebelum terbit fajar (waktu Subuh).' },
+      { cat:'MOTS', text:'Saat berwudu, Sinta tidak sengaja menelan sedikit air ketika berkumur. Bagaimana hukum puasanya?',
+        ok:'Tetap sah karena tidak sengaja', bad:['Batal dan mengulang dari awal bulan','Batal dan wajib bayar denda berat','Sah, tetapi harus membayar fidyah'],
+        exp:'Menelan air tanpa sengaja saat berkumur secukupnya tidak membatalkan puasa. Tetapi jangan berkumur terlalu berlebihan ya.' },
+      { cat:'HOTS', text:'Perhatikan kegiatan berikut: (A) makan karena lupa, (B) sengaja makan di siang hari, (C) sengaja memuntahkan makanan, (D) tidur seharian. Kegiatan yang membatalkan puasa adalah ....',
+        ok:'B dan C', bad:['A dan D','A dan B','C dan D'],
+        exp:'Makan karena lupa dan tidur tidak membatalkan puasa. Sengaja makan dan sengaja muntah membatalkan puasa.' }
+    ]},
+  { title:'Planet Keringanan', topic:'Udzur, Qadha, dan Fidyah', level:'Sedang', n:4, speed:.165, drift:.14,
+    planet:['#ffe29a','#ff8a2b'], icon:'🪐',
+    qs:[
+      { cat:'LOTS', text:'Mengganti puasa Ramadan yang ditinggalkan di hari lain disebut ....',
+        ok:'Qadha', bad:['Zakat','Sedekah','Infak'],
+        exp:'Mengganti puasa Ramadan yang ditinggalkan di hari lain disebut qadha.' },
+      { cat:'MOTS', text:'Nenek Aminah sudah sangat tua dan lemah sehingga tidak mampu berpuasa. Apa yang dapat dilakukan Nenek?',
+        ok:'Membayar fidyah, memberi makan orang miskin', bad:['Berpuasa dua kali lipat','Tidak perlu melakukan apa pun','Menunda puasa sampai tahun depan'],
+        exp:'Orang yang sudah sangat tua dan tidak mampu berpuasa boleh membayar fidyah, yaitu memberi makan orang miskin untuk setiap hari puasa yang ditinggalkan.' },
+      { cat:'HOTS', text:'Ibu Siti sedang hamil. Dokter menyarankan agar ia tidak berpuasa karena khawatir membahayakan. Sikap yang paling tepat adalah ....',
+        ok:'Boleh berbuka, lalu mengqadha nanti', bad:['Tetap berpuasa walau membahayakan','Berbuka dan tidak perlu mengganti','Mengganti dengan puasa sunnah saja'],
+        exp:'Islam memudahkan umatnya. Jika puasa membahayakan kesehatan, boleh berbuka lalu mengganti (qadha) di hari lain.' }
+    ]},
+  { title:'Sabuk Asteroid Sunnah', topic:'Puasa Sunnah', level:'Sulit', n:4, speed:.2, drift:.2,
+    planet:['#ffb3c9','#e0207f'], icon:'☄️',
+    qs:[
+      { cat:'LOTS', text:'Manakah yang termasuk puasa sunnah?',
+        ok:'Puasa Senin dan Kamis', bad:['Puasa Ramadan','Puasa pada hari Idul Fitri','Puasa pada hari Tasyrik'],
+        exp:'Puasa Senin-Kamis hukumnya sunnah. Puasa Ramadan hukumnya wajib, sedangkan berpuasa di hari Idul Fitri dan hari Tasyrik dilarang.' },
+      { cat:'MOTS', text:'Hari ini hari Selasa. Rina ingin berpuasa sunnah Senin-Kamis. Kapan puasa terdekat yang bisa ia lakukan?',
+        ok:'Hari Kamis, yaitu lusa', bad:['Besok hari Rabu','Hari ini hari Selasa','Hari Jumat'],
+        exp:'Puasa sunnah ini dilakukan pada hari Senin dan Kamis. Dari hari Selasa, hari terdekatnya adalah Kamis (lusa).' },
+      { cat:'HOTS', text:'Rasulullah ﷺ senang berpuasa Senin-Kamis karena pada dua hari itu amal dihadapkan kepada Allah. Kesimpulan yang paling tepat untuk kita adalah ....',
+        ok:'Meneladani beliau dengan berpuasa Senin-Kamis', bad:['Puasa itu hanya untuk Rasulullah','Puasa itu wajib bagi semua Muslim','Puasa itu tidak berguna sekarang'],
+        exp:'Kita dianjurkan meneladani Rasulullah ﷺ. Puasa Senin-Kamis hukumnya sunnah (dianjurkan), bukan wajib.' }
+    ]},
+  { title:'Galaksi Penjaga Iman', topic:'Sunnah Pilihan dan Larangan', level:'Ahli', n:4, speed:.235, drift:.28,
+    planet:['#b8ffd9','#12a45c'], icon:'🌌',
+    qs:[
+      { cat:'LOTS', text:'Puasa sunnah di bulan Syawal dilakukan selama ... hari.',
+        ok:'6 hari', bad:['3 hari','10 hari','30 hari'],
+        exp:'Puasa sunnah Syawal dilakukan 6 hari di bulan Syawal, setelah Idul Fitri.' },
+      { cat:'MOTS', text:'Pada tanggal 9 Zulhijah, jamaah haji wukuf di Arafah. Puasa sunnah apa yang dianjurkan bagi yang tidak berhaji pada hari itu?',
+        ok:'Puasa Arafah', bad:['Puasa Asyura','Puasa Syawal','Puasa Daud'],
+        exp:'Puasa Arafah dilakukan pada 9 Zulhijah bagi yang tidak sedang berhaji, dan sangat dianjurkan.' },
+      { cat:'HOTS', text:'Idul Fitri jatuh pada hari Senin. Fadil biasa berpuasa Senin-Kamis. Keputusan yang paling tepat adalah ....',
+        ok:'Tidak berpuasa karena hari raya dilarang puasa', bad:['Tetap berpuasa agar kebiasaan terjaga','Berpuasa setengah hari saja','Berpuasa sambil menolak jamuan tamu'],
+        exp:'Berpuasa pada hari raya Idul Fitri (1 Syawal) dilarang. Jadi Fadil tidak berpuasa dan merayakan hari raya bersama keluarga.' }
+    ]}
+];
+const CAT_LABEL = { LOTS:'LOTS • Mengingat', MOTS:'MOTS • Menerapkan', HOTS:'HOTS • Menganalisis' };
+const MAX_LIVES = 5, POINTS = 100;
+
+/* =====================================================================
+   UTIL & DOM
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const FONT = '"Fredoka","Trebuchet MS","Segoe UI",sans-serif';
+const rand = (a,b) => b===undefined ? Math.random()*a : a+Math.random()*(b-a);
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const shuffle = arr => { const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+const canvas = $('game'), ctx = canvas.getContext('2d');
+let W = innerWidth, H = innerHeight, DPR = 1;
+
+const S = {
+  name:'', screen:'start', phase:'idle', inMission:false,
+  scores:[0,0,0,0,0], corrects:[0,0,0,0,0], done:[false,false,false,false,false],
+  lives:MAX_LIVES, m:0, q:0, opts:[], ast:[], time:0, graceUntil:0,
+  shake:0, flash:0, flashColor:'255,77,94', lastWasCorrect:false
+};
+const ship = { x:0, y:0, tx:0, ty:0, tilt:0 };
+const B = { minX:44, maxX:700, minY:300, maxY:600 };
+let stars = [], planets = [], particles = [], nebula = null, shipScale = 1;
+const keys = new Set();
+
+/* ---------- timer helper ---------- */
+let timers = [];
+const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
+const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+
+/* ---------- toast ---------- */
+let toastT = 0;
+function toast(msg, ms=5000){
+  const t = $('toast'); t.textContent = msg; t.classList.remove('hidden');
+  clearTimeout(toastT); toastT = setTimeout(()=>t.classList.add('hidden'), ms);
+}
+
+/* =====================================================================
+   AUDIO
+   ===================================================================== */
+let audio = null, muted = false;
+function ac(){
+  if(!audio){ try{ audio = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audio=null; } }
+  if(audio && audio.state==='suspended') audio.resume();
+  return audio;
+}
+function tone(f, d=.15, type='sine', vol=.12, delay=0){
+  if(muted) return; const a = ac(); if(!a) return;
+  const t = a.currentTime + delay, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t+d);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+d+.03);
+}
+const sfx = {
+  click(){ tone(660,.08,'triangle',.1); },
+  ok(){ [523,659,784,1047].forEach((f,i)=>tone(f,.2,'triangle',.14,i*.08)); },
+  bad(){ tone(170,.35,'sawtooth',.13); tone(110,.4,'sawtooth',.12,.1); },
+  start(){ [392,523,659].forEach((f,i)=>tone(f,.18,'square',.08,i*.1)); },
+  win(){ [523,659,784,1047,784,1047,1319].forEach((f,i)=>tone(f,.22,'triangle',.14,i*.12)); },
+  over(){ [330,262,196,131].forEach((f,i)=>tone(f,.3,'sawtooth',.1,i*.18)); }
+};
+
+/* =====================================================================
+   NAVBAR / SCREENS
+   ===================================================================== */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  if(id){ $(id).classList.add('active'); }
+  S.screen = id || 'none';
+}
+const totalScore = () => S.scores.reduce((a,b)=>a+b, 0);
+const doneCount = () => S.done.filter(Boolean).length;
+function updateNav(){
+  const started = !!S.name;
+  $('playerPill').classList.toggle('hidden', !started);
+  $('navScoreBox').classList.toggle('hidden', !started);
+  $('navLives').classList.toggle('hidden', !started);
+  $('navProg').classList.toggle('hidden', !started);
+  if(!started) return;
+  $('navName').textContent = S.name;
+  $('navScore').textContent = totalScore();
+  let h = ''; for(let i=0;i<MAX_LIVES;i++) h += i < S.lives ? '❤️' : '🖤';
+  $('navLives').textContent = h;
+  $('navProgTxt').textContent = 'Misi ' + doneCount() + '/5';
+  $('navProgFill').style.width = (doneCount()/5*100) + '%';
+}
+function showHUD(on){
+  $('qPanel').classList.toggle('hidden', !on);
+  $('hint').classList.toggle('hidden', !on);
+  $('btnPause').classList.toggle('hidden', !on);
+}
+function banner(b1, b2, b3, ms, cb){
+  $('bn1').textContent = b1; $('bn2').textContent = b2 || ''; $('bn3').textContent = b3 || '';
+  const el = $('banner'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  later(() => { el.classList.remove('show'); if(cb) cb(); }, ms);
+}
+function hideBanner(){ $('banner').classList.remove('show'); }
+
+/* =====================================================================
+   FLOW
+   ===================================================================== */
+function goStart(){
+  clearTimers(); hideBanner(); showHUD(false);
+  S.phase = 'idle'; S.inMission = false; S.ast = [];
+  updateNav(); show('screenStart');
+}
+function startGame(){
+  const v = $('nameInput').value.trim();
+  if(!v){
+    const inp = $('nameInput'); inp.classList.remove('err'); void inp.offsetWidth; inp.classList.add('err');
+    $('nameErr').textContent = 'Isi namamu dulu ya, Astronot! 👨‍🚀'; inp.focus(); sfx.bad(); return;
+  }
+  $('nameErr').textContent = '';
+  S.name = v.slice(0,18);
+  S.scores = [0,0,0,0,0]; S.corrects = [0,0,0,0,0]; S.done = [false,false,false,false,false]; S.lives = MAX_LIVES;
+  sfx.start(); goMap();
+}
+function goMap(){
+  clearTimers(); hideBanner(); showHUD(false);
+  S.phase = 'idle'; S.inMission = false; S.ast = [];
+  buildMap(); updateNav(); show('screenMap');
+}
+function isUnlocked(i){ return i === 0 || S.done[i-1]; }
+function buildMap(){
+  $('mapTitle').textContent = 'Pilih Misi, Astronot ' + S.name + '!';
+  $('mapSub').textContent = 'Skor total: ' + totalScore() + ' • Misi selesai: ' + doneCount() + '/5 • Selesaikan misi berurutan untuk membuka misi berikutnya.';
+  const g = $('mapGrid'); g.innerHTML = '';
+  MISSIONS.forEach((m, i) => {
+    const unlocked = isUnlocked(i), done = S.done[i];
+    const c = document.createElement('div');
+    c.className = 'mcard ' + (done ? 'done' : unlocked ? 'open' : 'locked');
+    const p = document.createElement('div'); p.className = 'planet';
+    p.style.setProperty('--c1', m.planet[0]); p.style.setProperty('--c2', m.planet[1]);
+    p.textContent = unlocked ? m.icon : '🔒';
+    const h = document.createElement('h3'); h.textContent = 'MISI ' + (i+1);
+    const t = document.createElement('div'); t.className = 'mt'; t.textContent = m.title;
+    const s = document.createElement('div'); s.className = 'ms'; s.textContent = m.topic;
+    const l = document.createElement('div'); l.className = 'lv'; l.textContent = 'Tingkat: ' + m.level;
+    c.append(p, h, t, s, l);
+    const b = document.createElement('button');
+    b.className = 'btn sm ' + (done ? 'green' : 'cyan');
+    b.textContent = !unlocked ? '🔒 Terkunci' : done ? '🔁 Main Lagi ' + '(' + S.scores[i] + ')' : '▶ Mulai';
+    b.disabled = !unlocked; if(!unlocked) b.style.opacity = .6;
+    b.addEventListener('click', () => { if(isUnlocked(i)){ sfx.click(); startMission(i); } });
+    c.appendChild(b); g.appendChild(c);
+  });
+}
+
+function startMission(i){
+  clearTimers();
+  S.m = i; S.q = 0; S.scores[i] = 0; S.corrects[i] = 0;
+  if(S.lives <= 0) S.lives = 3;
+  S.inMission = true; S.phase = 'banner'; S.ast = []; particles.length = 0;
+  ship.x = ship.tx = W/2; ship.y = ship.ty = B.maxY;
+  show(null); showHUD(false); updateNav(); sfx.start();
+  const m = MISSIONS[i];
+  banner('MISI ' + (i+1), m.title, m.topic + ' • Tingkat ' + m.level, 2200, () => startQuestion());
+}
+function startQuestion(){
+  const m = MISSIONS[S.m], q = m.qs[S.q];
+  S.opts = shuffle([q.ok, ...shuffle(q.bad).slice(0, m.n-1)]);
+  $('qBadge').textContent = CAT_LABEL[q.cat]; $('qBadge').className = 'badge b-' + q.cat;
+  $('qMeta').textContent = 'Misi ' + (S.m+1) + ' • Soal ' + (S.q+1) + '/3';
+  $('mFill').style.width = (S.q/3*100) + '%';
+  $('qText').textContent = q.text;
+  showHUD(true); show(null);
+  buildAsteroids();
+  S.phase = 'play'; S.graceUntil = S.time + .8;
+}
+
+/* ---------- jawaban ---------- */
+function answer(a){
+  if(S.phase !== 'play') return;
+  S.phase = 'feedback';
+  const m = MISSIONS[S.m], q = m.qs[S.q], correct = a.ok;
+  a.dead = true; S.lastWasCorrect = correct;
+  if(correct){
+    S.scores[S.m] += POINTS; S.corrects[S.m]++;
+    burst(a.x, a.y, '#37f08a', 60); burst(a.x, a.y, '#ffd23f', 30);
+    S.flash = .35; S.flashColor = '55,240,138'; sfx.ok();
+  } else {
+    S.lives = Math.max(0, S.lives - 1);
+    burst(a.x, a.y, '#ff4d5e', 60); burst(a.x, a.y, '#ff9f1c', 30);
+    S.shake = .5; S.flash = .45; S.flashColor = '255,77,94'; sfx.bad();
+  }
+  updateNav();
+  $('mFill').style.width = ((S.q+1)/3*100) + '%';
+  const card = $('fbCard');
+  card.classList.toggle('fb-ok', correct); card.classList.toggle('fb-bad', !correct);
+  $('fbIcon').textContent = correct ? '🌟' : '💥';
+  $('fbTitle').textContent = correct ? 'HEBAT, ' + S.name.toUpperCase() + '! +' + POINTS + ' POIN' : 'OOPS, JAWABAN BELUM TEPAT';
+  $('fbAnswer').textContent = (correct ? 'Jawaban benar: ' : 'Jawaban yang benar: ') + q.ok + (correct ? '' : '   (❤️ −1)');
+  $('fbExp').textContent = q.exp;
+  const ms = correct ? 5500 : 7500;
+  const bar = $('fbTimerBar'); bar.classList.remove('run'); void bar.offsetWidth;
+  bar.style.animationDuration = ms + 'ms'; bar.classList.add('run');
+  later(() => { show('screenFeedback'); }, 650);
+  later(afterFeedback, ms + 650);
+}
+function afterFeedback(){
+  if(S.phase !== 'feedback') return;
+  clearTimers();
+  if(S.lives <= 0){ return gameOver(); }
+  if(S.q < 2){ S.q++; S.phase = 'banner'; show(null); startQuestion(); }
+  else finishMission();
+}
+function finishMission(){
+  S.done[S.m] = true; S.inMission = false; S.phase = 'idle'; S.ast = [];
+  showHUD(false);
+  const bonus = S.lives < MAX_LIVES; if(bonus) S.lives++;
+  updateNav();
+  if(S.m === 4){ return win(); }
+  const c = S.corrects[S.m], stars = c >= 3 ? 3 : c === 2 ? 2 : 1;
+  $('doneTitle').textContent = 'MISI ' + (S.m+1) + ' SELESAI!';
+  $('doneStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+  $('doneCorrect').textContent = c + '/3'; $('doneScore').textContent = S.scores[S.m]; $('doneTotal').textContent = totalScore();
+  $('doneMsg').textContent = 'Kerja bagus, ' + S.name + '! ' + (bonus ? 'Kamu mendapat bonus ❤️ +1 nyawa. ' : '') + 'Misi berikutnya telah terbuka: ' + MISSIONS[S.m+1].title + '.';
+  $('btnDoneNext').textContent = 'Misi ' + (S.m+2) + ' ➜';
+  show('screenDone'); sfx.ok();
+}
+function gameOver(){
+  S.phase = 'idle'; S.inMission = false; S.ast = []; showHUD(false); hideBanner();
+  $('overMsg').textContent = 'Semua nyawa habis, ' + S.name + '. Jangan menyerah! Astronot hebat selalu mencoba lagi. Ulangi Misi ' + (S.m+1) + ' dengan 3 nyawa.';
+  show('screenOver'); sfx.over();
+}
+function win(){
+  S.phase = 'idle';
+  const tot = totalScore(), cor = S.corrects.reduce((a,b)=>a+b,0);
+  const stars = tot >= 1200 ? 3 : tot >= 800 ? 2 : 1;
+  const rank = tot >= 1200 ? 'Legenda Galaksi' : tot >= 800 ? 'Kapten Bintang' : 'Astronot Pemberani';
+  $('winTitle').textContent = 'SELAMAT, ASTRONOT ' + S.name.toUpperCase() + '!';
+  $('winStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+  $('winScore').textContent = tot; $('winCorrect').textContent = cor + '/15'; $('winRank').textContent = rank;
+  $('winMsg').textContent = 'Terima kasih, ' + S.name + '! Kamu berhasil menyelamatkan galaksi dan menyelesaikan 5 misi tentang puasa wajib dan puasa sunnah. Semoga kamu semakin rajin berpuasa Ramadan dan puasa sunnah, serta menjaga ucapan dan perbuatan baik. Barakallahu fiik! 🌙';
+  show('screenWin'); sfx.win();
+  for(let i=0;i<6;i++) later(() => firework(rand(W*.15, W*.85), rand(H*.2, H*.55)), i*350);
+}
+function playAgain(){
+  clearTimers();
+  $('nameInput').value = S.name;
+  S.name = ''; S.scores = [0,0,0,0,0]; S.corrects = [0,0,0,0,0]; S.done = [false,false,false,false,false]; S.lives = MAX_LIVES;
+  particles.length = 0; goStart();
+}
+function togglePause(){
+  if(S.phase === 'play'){ S.phase = 'paused'; show('screenPause'); }
+  else if(S.phase === 'paused'){ S.phase = 'play'; show(null); }
+}
+
+/* =====================================================================
+   ASTEROID
+   ===================================================================== */
+const AST_COLORS = [['#e6c9ff','#8a4dff','#2a0f66'],['#b9fff0','#17c3a4','#06433a'],['#ffe0a6','#ff9a1f','#5c2a00'],['#ffc2dc','#ff3d9a','#5e0b34']];
+function fitText(text, r){
+  const maxW = r*1.52, maxH = r*1.42; let res = null;
+  for(let size = Math.floor(r*.3); size >= 9; size--){
+    ctx.font = '700 ' + size + 'px ' + FONT;
+    const words = text.split(' '); const lines = []; let cur = '', tooWide = false;
+    for(const w of words){
+      const t = cur ? cur + ' ' + w : w;
+      if(ctx.measureText(t).width <= maxW) cur = t;
+      else { if(cur) lines.push(cur); cur = w; if(ctx.measureText(w).width > maxW) tooWide = true; }
+    }
+    if(cur) lines.push(cur);
+    res = { size, lines };
+    if(!tooWide && lines.length * size * 1.15 <= maxH) return res;
+  }
+  return res;
+}
+function buildAsteroids(){
+  const m = MISSIONS[S.m], n = S.opts.length;
+  const cols = (W < 700 && n > 2) ? 2 : n, rows = Math.ceil(n/cols), slotW = W/cols;
+  const r = Math.max(34, Math.min(104, slotW*.43, H*.14));
+  const cycle = H + r*2 + 120;
+  const speed = m.speed * H;
+  const order = shuffle([...Array(n).keys()]);
+  S.ast = S.opts.map((t, i) => {
+    const col = i % cols, row = Math.floor(i/cols);
+    const y0 = rows > 1 ? -r - row*cycle/rows - rand(0,30) : -r - (order[i]/n)*cycle*.62 - rand(0,40);
+    const pal = AST_COLORS[i % AST_COLORS.length];
+    const nv = 11, verts = [];
+    for(let k=0;k<nv;k++){ const ang = k/nv*Math.PI*2, rad = r*rand(.88,1); verts.push([Math.cos(ang)*rad, Math.sin(ang)*rad]); }
+    const craters = []; for(let k=0;k<4;k++){ const ang = rand(Math.PI*2), d = rand(.25,.7)*r; craters.push({ x:Math.cos(ang)*d, y:Math.sin(ang)*d, r:rand(.08,.17)*r }); }
+    return {
+      text:t, ok:t === MISSIONS[S.m].qs[S.q].ok, r, bx:slotW*(col+.5), x:slotW*(col+.5), y:y0,
+      vy: speed * (rows > 1 ? 1 : rand(.92,1.12)), amp: m.drift*slotW*.5, f: rand(.8,1.5), ph: rand(Math.PI*2),
+      rot: rand(Math.PI*2), vr: rand(-.5,.5), verts, craters, pal, cycle, fit: fitText(t, r), dead:false
+    };
+  });
+}
+function drawAsteroid(a, alpha){
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(a.x, a.y);
+  ctx.save(); ctx.rotate(a.rot);
+  ctx.shadowColor = a.pal[1]; ctx.shadowBlur = 24;
+  const g = ctx.createRadialGradient(-a.r*.3, -a.r*.35, a.r*.1, 0, 0, a.r*1.1);
+  g.addColorStop(0, a.pal[0]); g.addColorStop(.55, a.pal[1]); g.addColorStop(1, a.pal[2]);
+  ctx.fillStyle = g; ctx.beginPath();
+  a.verts.forEach((v,i) => i ? ctx.lineTo(v[0],v[1]) : ctx.moveTo(v[0],v[1])); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.stroke();
+  a.craters.forEach(c => {
+    ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(c.x - c.r*.1, c.y - c.r*.1, c.r, .2, Math.PI*1.1); ctx.stroke();
+  });
+  ctx.restore();
+  // teks jawaban (tidak berputar)
+  const f = a.fit, lh = f.size*1.15, y0 = -(f.lines.length-1)*lh/2;
+  ctx.font = '700 ' + f.size + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(3, f.size*.28); ctx.strokeStyle = 'rgba(12,5,35,.9)'; ctx.fillStyle = '#fff';
+  f.lines.forEach((ln, i) => { ctx.strokeText(ln, 0, y0 + i*lh); ctx.fillText(ln, 0, y0 + i*lh); });
+  ctx.restore();
+}
+
+/* =====================================================================
+   PARTICLES
+   ===================================================================== */
+function burst(x, y, color, n){
+  for(let i=0;i<n;i++){
+    const ang = rand(Math.PI*2), sp = rand(60, 420);
+    particles.push({ x, y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp, life:1, decay:rand(.8,1.8), size:rand(2,6), color, g:0 });
+  }
+}
+function firework(x, y){
+  const cols = ['#ffd23f','#ff3d9a','#2de2ff','#37f08a','#b58bff'];
+  for(let k=0;k<3;k++){ const c = cols[Math.floor(Math.random()*cols.length)];
+    for(let i=0;i<30;i++){ const ang = rand(Math.PI*2), sp = rand(80,320);
+      particles.push({ x, y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp, life:1, decay:rand(.5,.9), size:rand(2,5), color:c, g:140 }); } }
+  tone(rand(300,700), .25, 'triangle', .05);
+}
+
+/* =====================================================================
+   BACKGROUND: nebula, bintang, planet
+   ===================================================================== */
+function makeNebula(){
+  nebula = document.createElement('canvas'); nebula.width = Math.max(2,Math.floor(W)); nebula.height = Math.max(2,Math.floor(H));
+  const c = nebula.getContext('2d');
+  const bg = c.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#05021a'); bg.addColorStop(.5,'#0d0540'); bg.addColorStop(1,'#1b0a4f');
+  c.fillStyle = bg; c.fillRect(0,0,W,H);
+  [[.2,.3,.6,'rgba(120,60,255,.35)'],[.8,.25,.5,'rgba(255,61,154,.22)'],[.55,.8,.65,'rgba(30,170,255,.25)'],[.1,.85,.4,'rgba(255,150,60,.15)']].forEach(([x,y,r,col]) => {
+    const R = r*Math.max(W,H), g = c.createRadialGradient(x*W,y*H,0,x*W,y*H,R);
+    g.addColorStop(0,col); g.addColorStop(1,'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0,0,W,H);
+  });
+}
+function initStars(){
+  stars = [];
+  const n = Math.round(clamp(W*H/6500, 80, 260));
+  for(let i=0;i<n;i++){ const l = i%3; stars.push({ x:rand(W), y:rand(H), l, s:[.8,1.3,2][l]*rand(.7,1.3), sp:[10,30,70][l], tw:rand(6) }); }
+}
+function initPlanets(){
+  const u = Math.min(W,H);
+  planets = [
+    { x:.14, y:H*.30, r:.085, c1:'#ffc58a', c2:'#c2401f', ring:false, sp:3 },
+    { x:.86, y:H*.62, r:.13, c1:'#a6ecff', c2:'#2a4fd6', ring:true, sp:2 },
+    { x:.58, y:H*.08, r:.045, c1:'#e4b8ff', c2:'#6a2bbd', ring:false, sp:4 }
+  ];
+  planets.forEach(p => p.R = p.r*u);
+}
+function drawPlanet(p){
+  const R = p.R, x = p.x*W, y = p.y;
+  ctx.save(); ctx.translate(x, y);
+  if(p.ring){ ctx.save(); ctx.rotate(-.35); ctx.scale(1,.28); ctx.strokeStyle = 'rgba(255,230,180,.5)'; ctx.lineWidth = R*.22; ctx.beginPath(); ctx.arc(0,0,R*1.65,0,Math.PI*2); ctx.stroke(); ctx.restore(); }
+  ctx.shadowColor = p.c2; ctx.shadowBlur = R*.6;
+  const g = ctx.createRadialGradient(-R*.4,-R*.4,R*.1,0,0,R);
+  g.addColorStop(0,p.c1); g.addColorStop(.7,p.c2); g.addColorStop(1,'#1a0a40');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0,0,R,0,Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+  ctx.save(); ctx.beginPath(); ctx.arc(0,0,R,0,Math.PI*2); ctx.clip();
+  ctx.fillStyle = 'rgba(255,255,255,.1)';
+  for(let i=-2;i<=2;i++){ ctx.beginPath(); ctx.ellipse(0, i*R*.32, R*1.1, R*.09, -.2, 0, Math.PI*2); ctx.fill(); }
+  const sh = ctx.createRadialGradient(-R*.5,-R*.5,R*.4,R*.2,R*.2,R*1.3);
+  sh.addColorStop(0,'rgba(0,0,0,0)'); sh.addColorStop(.6,'rgba(0,0,10,.08)'); sh.addColorStop(1,'rgba(0,0,10,.5)'); ctx.fillStyle = sh; ctx.fillRect(-R,-R,R*2,R*2);
+  ctx.restore();
+  if(p.ring){ ctx.save(); ctx.rotate(-.35); ctx.scale(1,.28); ctx.strokeStyle = 'rgba(255,230,180,.6)'; ctx.lineWidth = R*.22; ctx.beginPath(); ctx.arc(0,0,R*1.65,0,Math.PI); ctx.stroke(); ctx.restore(); }
+  ctx.restore();
+}
+
+/* =====================================================================
+   KAPAL / SHIP
+   ===================================================================== */
+function drawShip(){
+  const s = ship; ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.tilt); ctx.scale(shipScale, shipScale);
+  const fl = 1 + Math.sin(S.time*45)*.18 + Math.sin(S.time*23)*.1;
+  let g = ctx.createLinearGradient(0,22,0,86*fl); g.addColorStop(0,'#fffbc0'); g.addColorStop(.35,'#ff9f1c'); g.addColorStop(1,'rgba(255,60,0,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-11,24); ctx.quadraticCurveTo(0,92*fl,11,24); ctx.closePath(); ctx.fill();
+  ctx.shadowColor = '#2de2ff'; ctx.shadowBlur = 18;
+  const wg = ctx.createLinearGradient(-40,0,40,0); wg.addColorStop(0,'#c21a58'); wg.addColorStop(.5,'#ff5f9e'); wg.addColorStop(1,'#c21a58');
+  ctx.fillStyle = wg;
+  ctx.beginPath(); ctx.moveTo(-12,-4); ctx.lineTo(-40,32); ctx.lineTo(-34,40); ctx.lineTo(-12,28); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(12,-4); ctx.lineTo(40,32); ctx.lineTo(34,40); ctx.lineTo(12,28); ctx.closePath(); ctx.fill();
+  const bg = ctx.createLinearGradient(-17,0,17,0); bg.addColorStop(0,'#9db0ff'); bg.addColorStop(.45,'#ffffff'); bg.addColorStop(1,'#7f93ee');
+  ctx.fillStyle = bg; ctx.beginPath(); ctx.moveTo(0,-46); ctx.bezierCurveTo(20,-24,19,10,14,30); ctx.lineTo(-14,30); ctx.bezierCurveTo(-19,10,-20,-24,0,-46); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#ff3d6e'; ctx.beginPath(); ctx.moveTo(0,-46); ctx.bezierCurveTo(8,-38,9,-30,8,-26); ctx.lineTo(-8,-26); ctx.bezierCurveTo(-9,-30,-8,-38,0,-46); ctx.closePath(); ctx.fill();
+  const cg = ctx.createRadialGradient(-3,-14,1,0,-10,13); cg.addColorStop(0,'#e6fdff'); cg.addColorStop(.5,'#2de2ff'); cg.addColorStop(1,'#0a5a8a');
+  ctx.fillStyle = cg; ctx.beginPath(); ctx.ellipse(0,-10,8.5,13,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.ellipse(-3,-15,2.5,5,.3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#56607f'; ctx.fillRect(-12,28,9,7); ctx.fillRect(3,28,9,7);
+  ctx.restore();
+}
+
+/* =====================================================================
+   INPUT: mouse / touch / keyboard
+   ===================================================================== */
+function updateBounds(){
+  B.minX = 44; B.maxX = Math.max(B.minX+10, W-44);
+  B.minY = Math.max(H*.44, 190); B.maxY = Math.max(B.minY+10, H-92);
+  shipScale = clamp(Math.min(W,H)/780, .72, 1.15);
+}
+const handActive = () => cam.on && (performance.now() - cam.lastSeen) < 600;
+window.addEventListener('pointermove', e => {
+  if(!S.inMission || handActive()) return;
+  if(e.target && e.target.closest && e.target.closest('button,#qPanel,.card')) return;
+  ship.tx = clamp(e.clientX, B.minX, B.maxX); ship.ty = clamp(e.clientY, B.minY, B.maxY);
+});
+window.addEventListener('pointerdown', e => {
+  if(!S.inMission || handActive()) return;
+  if(e.target && e.target.closest && e.target.closest('button,#qPanel,.card')) return;
+  ship.tx = clamp(e.clientX, B.minX, B.maxX); ship.ty = clamp(e.clientY, B.minY, B.maxY);
+});
+window.addEventListener('keydown', e => {
+  const k = e.key;
+  if(document.activeElement === $('nameInput')){ if(k === 'Enter') startGame(); return; }
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(k) && S.inMission) e.preventDefault();
+  keys.add(k.length === 1 ? k.toLowerCase() : k);
+  if(k === 'p' || k === 'P' || k === 'Escape') togglePause();
+  if((k === 'Enter' || k === ' ') && S.phase === 'feedback') afterFeedback();
+});
+window.addEventListener('keyup', e => keys.delete(e.key.length === 1 ? e.key.toLowerCase() : e.key));
+window.addEventListener('blur', () => keys.clear());
+document.addEventListener('visibilitychange', () => { if(document.hidden && S.phase === 'play') togglePause(); });
+
+/* =====================================================================
+   KAMERA + MEDIAPIPE HANDS
+   ===================================================================== */
+const HANDS_BASE = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/';
+const cam = { on:false, loading:false, stream:null, hands:null, busy:false, lastSeen:0, state:'off' };
+const video = $('video'), camCanvas = $('camCanvas'), camCtx = camCanvas.getContext('2d');
+const CONN = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+
+function loadScript(src){
+  return new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = src; s.crossOrigin = 'anonymous';
+    s.onload = res; s.onerror = () => rej(new Error('script-load')); document.head.appendChild(s);
+  });
+}
+function setCamState(state, label){
+  const b = $('btnCam');
+  if(cam.state !== state){ b.classList.remove('off','loading','search','active'); b.classList.add(state); cam.state = state; }
+  $('camLabel').textContent = label; $('camStatus').textContent = label;
+}
+async function startCamera(){
+  if(cam.loading || cam.on) return;
+  cam.loading = true; setCamState('loading', 'Memuat kamera…');
+  try{
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('no-media');
+    if(!window.Hands) await loadScript(HANDS_BASE + 'hands.js');
+    if(!cam.hands){
+      cam.hands = new window.Hands({ locateFile: f => HANDS_BASE + f });
+      cam.hands.setOptions({ maxNumHands:1, modelComplexity:1, minDetectionConfidence:.6, minTrackingConfidence:.5 });
+      cam.hands.onResults(onHands);
+      if(cam.hands.initialize) await cam.hands.initialize();
+    }
+    cam.stream = await navigator.mediaDevices.getUserMedia({ video:{ width:{ideal:640}, height:{ideal:480}, facingMode:'user' }, audio:false });
+    video.srcObject = cam.stream; await video.play();
+    cam.on = true; cam.lastSeen = 0;
+    $('camBox').classList.remove('hidden');
+    setCamState('search', 'Cari telapak tangan…');
+    camLoop();
+    toast('Kamera aktif! Gerakkan telapak tangan di depan kamera untuk menerbangkan pesawat.', 4500);
+  }catch(err){
+    stopCamera(true);
+    const n = err && err.name;
+    let msg = 'Kamera tidak dapat diaktifkan. Kamu tetap bisa bermain dengan mouse atau keyboard.';
+    if(n === 'NotAllowedError' || n === 'SecurityError') msg = 'Izin kamera ditolak. Klik ikon kamera di address bar lalu pilih “Izinkan”. Sementara itu pakai mouse atau keyboard.';
+    else if(n === 'NotFoundError' || n === 'OverconstrainedError') msg = 'Kamera tidak ditemukan. Pakai mouse atau keyboard dulu ya.';
+    else if(err && err.message === 'script-load') msg = 'Model pengenal tangan gagal dimuat (periksa internet). Pakai mouse atau keyboard dulu ya.';
+    toast(msg, 8000);
+  }finally{ cam.loading = false; }
+}
+function stopCamera(silent){
+  cam.on = false;
+  if(cam.stream){ cam.stream.getTracks().forEach(t => t.stop()); cam.stream = null; }
+  try{ video.srcObject = null; }catch(e){}
+  $('camBox').classList.add('hidden');
+  setCamState('off', 'Aktifkan Kamera');
+  if(!silent) toast('Kamera dimatikan.', 2500);
+}
+async function camLoop(){
+  if(!cam.on) return;
+  if(!cam.busy && video.readyState >= 2){
+    cam.busy = true;
+    try{ await cam.hands.send({ image: video }); }catch(e){ console.warn(e); }
+    cam.busy = false;
+  }
+  requestAnimationFrame(camLoop);
+}
+function onHands(res){
+  if(!cam.on) return;
+  const vw = video.videoWidth || 640, vh = video.videoHeight || 480;
+  if(camCanvas.width !== vw){ camCanvas.width = vw; camCanvas.height = vh; }
+  camCtx.clearRect(0, 0, vw, vh);
+  const lms = res.multiHandLandmarks;
+  if(lms && lms.length){
+    const lm = lms[0];
+    camCtx.strokeStyle = '#37f08a'; camCtx.lineWidth = 3;
+    CONN.forEach(([a,b]) => { camCtx.beginPath(); camCtx.moveTo(lm[a].x*vw, lm[a].y*vh); camCtx.lineTo(lm[b].x*vw, lm[b].y*vh); camCtx.stroke(); });
+    camCtx.fillStyle = '#ff3d9a'; lm.forEach(p => { camCtx.beginPath(); camCtx.arc(p.x*vw, p.y*vh, 4, 0, Math.PI*2); camCtx.fill(); });
+    let px = 0, py = 0; [0,5,9,13,17].forEach(i => { px += lm[i].x; py += lm[i].y; }); px /= 5; py /= 5;
+    camCtx.fillStyle = '#ffd23f'; camCtx.beginPath(); camCtx.arc(px*vw, py*vh, 9, 0, Math.PI*2); camCtx.fill();
+    setHandTarget(1 - px, py);
+    cam.lastSeen = performance.now();
+    setCamState('active', 'Telapak terdeteksi ✋');
+  } else if(performance.now() - cam.lastSeen > 600){
+    setCamState('search', 'Cari telapak tangan…');
+  }
+}
+function setHandTarget(nx, ny){
+  const X = clamp((nx - .15)/.7, 0, 1), Y = clamp((ny - .15)/.7, 0, 1);
+  const tx = B.minX + X*(B.maxX - B.minX), ty = B.minY + Y*(B.maxY - B.minY);
+  ship.tx += (tx - ship.tx)*.6; ship.ty += (ty - ship.ty)*.6;
+}
+
+/* =====================================================================
+   UPDATE & DRAW
+   ===================================================================== */
+function update(dt){
+  S.time += dt;
+  const warp = S.phase === 'play' ? 1 : .35;
+  stars.forEach(s => { s.y += s.sp*dt*(1 + warp*(s.l+1)*.5); if(s.y > H + 8){ s.y = -8; s.x = rand(W); } });
+  planets.forEach(p => { p.y += p.sp*dt*(.4 + warp*.6); if(p.y > H + p.R*2){ p.y = -p.R*2.2; p.x = rand(.1,.9); } });
+
+  if(S.inMission && (S.phase === 'play' || S.phase === 'banner' || S.phase === 'feedback')){
+    const sp = 760*dt;
+    if(keys.has('ArrowLeft') || keys.has('a')) ship.tx -= sp;
+    if(keys.has('ArrowRight') || keys.has('d')) ship.tx += sp;
+    if(keys.has('ArrowUp') || keys.has('w')) ship.ty -= sp;
+    if(keys.has('ArrowDown') || keys.has('s')) ship.ty += sp;
+    ship.tx = clamp(ship.tx, B.minX, B.maxX); ship.ty = clamp(ship.ty, B.minY, B.maxY);
+    const k = Math.min(1, dt*9), ox = ship.x;
+    ship.x += (ship.tx - ship.x)*k; ship.y += (ship.ty - ship.y)*k;
+    const vx = (ship.x - ox)/Math.max(dt,.001);
+    ship.tilt += (clamp(vx*.0007, -.45, .45) - ship.tilt)*Math.min(1, dt*10);
+  }
+
+  if(S.phase === 'play'){
+    for(const a of S.ast){
+      if(a.dead) continue;
+      a.y += a.vy*dt; a.rot += a.vr*dt;
+      a.x = a.bx + Math.sin(S.time*a.f + a.ph)*a.amp;
+      if(a.y > H + a.r + 20) a.y -= a.cycle;
+    }
+    if(S.time >= S.graceUntil){
+      const hit = ship.x, hy = ship.y, sr = 24*shipScale;
+      for(const a of S.ast){
+        if(a.dead) continue;
+        if(Math.hypot(a.x - hit, a.y - hy) < a.r*.8 + sr){ answer(a); break; }
+      }
+    }
+  }
+  if(S.screen === 'screenWin' && Math.random() < dt*1.6) firework(rand(W*.1, W*.9), rand(H*.15, H*.6));
+  for(let i = particles.length-1; i >= 0; i--){
+    const p = particles[i]; p.x += p.vx*dt; p.y += p.vy*dt; p.vy += p.g*dt; p.vx *= .985; p.life -= p.decay*dt;
+    if(p.life <= 0) particles.splice(i,1);
+  }
+  S.shake = Math.max(0, S.shake - dt); S.flash = Math.max(0, S.flash - dt*.9);
+}
+function draw(){
+  ctx.save();
+  if(S.shake > 0) ctx.translate(rand(-1,1)*S.shake*22, rand(-1,1)*S.shake*22);
+  if(nebula) ctx.drawImage(nebula, 0, 0, W, H); else { ctx.fillStyle = '#05021a'; ctx.fillRect(0,0,W,H); }
+  const warp = S.phase === 'play';
+  stars.forEach(s => {
+    const a = .35 + .65*(.5 + .5*Math.sin(S.time*2 + s.tw));
+    ctx.globalAlpha = a; ctx.fillStyle = s.l === 2 ? '#d6f6ff' : '#fff';
+    if(s.l === 2 && warp) ctx.fillRect(s.x, s.y, s.s, s.s + 7); else { ctx.beginPath(); ctx.arc(s.x, s.y, s.s*.7, 0, Math.PI*2); ctx.fill(); }
+  });
+  ctx.globalAlpha = 1;
+  planets.forEach(drawPlanet);
+  if(S.inMission){
+    const fb = S.phase === 'feedback';
+    S.ast.forEach(a => { if(!a.dead) drawAsteroid(a, fb ? .4 : 1); });
+    drawShip();
+  }
+  particles.forEach(p => { ctx.globalAlpha = clamp(p.life,0,1); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  if(S.flash > 0){ ctx.fillStyle = 'rgba(' + S.flashColor + ',' + (S.flash*.5) + ')'; ctx.fillRect(0,0,W,H); }
+}
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(.05, (now - last)/1000); last = now;
+  update(dt); draw(); requestAnimationFrame(frame);
+}
+
+/* =====================================================================
+   RESIZE & INIT
+   ===================================================================== */
+function resize(){
+  DPR = Math.min(2, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+  canvas.width = Math.floor(W*DPR); canvas.height = Math.floor(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
+  makeNebula(); initStars(); initPlanets(); updateBounds();
+  ship.tx = clamp(ship.tx || W/2, B.minX, B.maxX); ship.ty = clamp(ship.ty || B.maxY, B.minY, B.maxY);
+  ship.x = clamp(ship.x || ship.tx, B.minX, B.maxX); ship.y = clamp(ship.y || ship.ty, B.minY, B.maxY);
+  if(S.phase === 'play' && S.opts.length) buildAsteroids();
+}
+window.addEventListener('resize', resize);
+
+$('btnStart').addEventListener('click', () => { ac(); startGame(); });
+$('btnMapBack').addEventListener('click', () => { sfx.click(); $('nameInput').value = S.name; S.name = ''; S.scores = [0,0,0,0,0]; S.corrects = [0,0,0,0,0]; S.done = [false,false,false,false,false]; S.lives = MAX_LIVES; goStart(); });
+$('btnNext').addEventListener('click', () => { sfx.click(); afterFeedback(); });
+$('btnDoneMap').addEventListener('click', () => { sfx.click(); goMap(); });
+$('btnDoneNext').addEventListener('click', () => { sfx.click(); startMission(S.m + 1); });
+$('btnOverMap').addEventListener('click', () => { sfx.click(); S.lives = 3; S.scores[S.m] = 0; S.corrects[S.m] = 0; goMap(); });
+$('btnOverRetry').addEventListener('click', () => { sfx.click(); S.lives = 3; startMission(S.m); });
+$('btnPause').addEventListener('click', () => { sfx.click(); togglePause(); });
+$('btnResume').addEventListener('click', () => { sfx.click(); togglePause(); });
+$('btnPauseMap').addEventListener('click', () => { sfx.click(); S.scores[S.m] = 0; S.corrects[S.m] = 0; goMap(); });
+$('btnPlayAgain').addEventListener('click', () => { sfx.click(); playAgain(); });
+$('btnCam').addEventListener('click', () => { ac(); if(cam.on) stopCamera(); else startCamera(); });
+$('btnSound').addEventListener('click', () => { muted = !muted; $('btnSound').textContent = muted ? '🔇' : '🔊'; if(!muted){ ac(); sfx.click(); } });
+$('nameInput').addEventListener('input', () => { $('nameErr').textContent = ''; $('nameInput').classList.remove('err'); });
+
+setCamState('off', 'Aktifkan Kamera');
+resize(); updateNav(); requestAnimationFrame(frame);
+setTimeout(() => $('nameInput').focus(), 100);
+
+/* hook uji (tidak mengganggu permainan) */
+window.__game = { S, ship, MISSIONS, answer, startGame, startMission, afterFeedback, goMap };
+})();
+</script>
+</body>
+</html>
